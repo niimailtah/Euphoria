@@ -3,7 +3,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "global.h"
 
 #define MENTOR 1
 
@@ -233,7 +232,7 @@ void prn_sost(long god)
     if (MENTOR)
     {
         long int difference = cur_guard * 3 + cur_krest * 3 +cur_land;
-        printf("\nНадо %li зерна\nМможно продать %li", difference, cur_zerno - difference);
+        printf("\nНадо %li зерна\nМожно продать %li", difference, cur_zerno - difference);
     }
 }
 
@@ -371,7 +370,7 @@ void prn_birge()
 
 void torgovla()
 {
-    long n, nn, nn2;
+    long nn, nn2;
     long cur;
     char ch;
     make_price();
@@ -960,7 +959,7 @@ void sosed_marry()
 
 void begin_war()
 {
-    char ch;
+    // char ch;
     long cur, ras;
     long your_men, enemy_men;
     long n, victory;
@@ -1089,7 +1088,7 @@ void dead_wife()
 void koroleva_prosit()
 {
     long n, cur;
-    char ch;
+    // char ch;
     n = random(100);
     if (n < 15)
     {
@@ -1158,6 +1157,7 @@ long shaman()
     cur = (random(40) + 1) * cur_money / 100;
     printf("\nНо за это он требует половину Вашего золота и %li руб.", cur);
     printf("\nВы согласны (y/n)? ==> ");
+    n = get_choice();
     if (n == 1)
     {
         cur_money -= cur;
