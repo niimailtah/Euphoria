@@ -1,21 +1,23 @@
 
 CC:=gcc
 
-SRC=$(wildcard *.c)
+SRC=$(wildcard *.cpp)
 
-DEPS=ncurses panel menu form
+#DEPS=
+#CFLAGS+=-O0 -g3 -Wall -export-dynamic -I./ $(shell pkg-config $(DEPS) --cflags)
 
-CFLAGS+=-O0 -g3 -Wall -export-dynamic -std=c99 -I./ $(shell pkg-config $(DEPS) --cflags)
+CFLAGS+=-O0 -g3 -Wall -export-dynamic -I./
 
-LDFLAGS:=$(shell pkg-config $(DEPS) --libs)
+#LDFLAGS:=$(shell pkg-config $(DEPS) --libs)
+LDFLAGS=-lstdc++
 
-OBJ=$(SRC:%.c=%.o)
+OBJ=$(SRC:%.cpp=%.o)
 
 EXEC:=./bin/eiforia
 
 all: $(EXEC)
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(EXEC): $(OBJ)
