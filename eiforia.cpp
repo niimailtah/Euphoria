@@ -1218,16 +1218,18 @@ void new_game()
         screen = game.run();
         screen->show();
         std::cout << game.get_state();
-        return;
-        prn_sost(i);
+//        prn_sost(i); // game.get_state()
         if (i > 1)
         {
-            visir_message();
+            std::cout << game.get_visir_message();
+//            visir_message(); // game.get_visir_message()
         }
+        return;
 
         if (fl_kar == 5)
         {
-            pribil_kar();
+            std::cout << game.get_caravan_arrival();
+//            pribil_kar(); // game.get_caravan_arrival()
             fl_kar = 0;
         }
 
@@ -1269,7 +1271,8 @@ void new_game()
             n = random(100);
             if (n < 20)
             {
-                grabeg_kar();
+                std::sout << game.get_loot_caravan();
+//                grabeg_kar(); // get_loot_caravan
             }
         }
 
@@ -1343,7 +1346,8 @@ void new_game()
             n = random(100);
             if (n < 15)
             {
-                poimali_visir();
+                std::cout << game.get_catch_visir();
+//                poimali_visir(); // get_catch_visir()
 /*                printf("\n\nНажмите любую клавишу...");
                 ch = getchar();
                 if (ch == 0)
@@ -1356,7 +1360,8 @@ void new_game()
         n = random(100);
         if (n < 10)
         {
-            nasledstvo();
+            std::cout << game.get_inherit();
+//            nasledstvo(); // get_inherit()
 /*            printf("\n\nНажмите любую клавишу...");
             ch = getchar();
             if (ch == 0)
@@ -1370,7 +1375,8 @@ void new_game()
             n = random(100);
             if (n < 10)
             {
-                rodilsa_sin();
+                std::cout << get_born_son();
+//                rodilsa_sin(); // get_born_son()
 /*                printf("\n\nНажмите любую клавишу...");
                 ch = getchar();
                 if (ch == 0)
