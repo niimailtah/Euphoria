@@ -31,3 +31,33 @@ EndGame
     печатать отчет об игре
 
 Да уж, похоже следует исрользовать FSM
+-----------------------------------------------------------------
+Покумекав немного подумал, что в клиенте будет следующее:
+
+Interrupt = StartGame
+while (Interrupt != EndGame)
+{
+    Interrupt = Game.Run();
+    switch (Interrupt)
+    {
+        case WaitMessage:
+            Message = Game.getMessage();
+            // показываем сообщение как желаем
+            showMessage(Message);
+            break;
+        case WaitChoice:
+            Cases = Game.getCases();
+            // запрашиваем выбор пользователя
+            Choice = getChoice(Cases);
+            Game.sendChoice(Choice);
+            break;
+        case WaitInput:
+            // запрашиваем строку у пользователя
+            Input = getInput();
+            Game.sendInput(Input);
+            break;
+        case EndGame:
+        default:
+            break;
+    }
+}
