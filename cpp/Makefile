@@ -1,4 +1,4 @@
-
+#
 CC:=gcc
 
 SRC=$(wildcard *.cpp)
