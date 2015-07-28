@@ -4,56 +4,6 @@
 static const long ed_posev = 1; // на посев на 1 га
 static const long ed_eat = 3;   // на еду на 1 душу (krest+guard)
 
-
-Screen::Screen()
-{
-
-}
-Screen::~Screen()
-{
-
-}
-void Screen::show()
-{
-
-}
-Choice::Choice()
-{
-
-}
-Choice::~Choice()
-{
-
-}
-void Choice::show()
-{
-    
-}
-Menu::Menu()
-{
-
-}
-Menu::~Menu()
-{
-
-}
-void Menu::show()
-{
-    
-}
-Message::Message()
-{
-
-}
-Message::~Message()
-{
-
-}
-void Message::show()
-{
-    
-}
-
 Game::Game()
 {
     /* initialize random seed: */
@@ -66,7 +16,24 @@ Game::Game()
     state.grain = 1000;  // зерно, тонн
     state.peasant= 100;   // крестьяне, душ
     state.guard = 100;   // гвардия, чел
-    stage = Start;
+    state.cur_money = state.money;
+    state.cur_gold = state.gold;
+    state.cur_land = state.land;
+    state.cur_grain = state.grain;
+    state.cur_peasant = state.peasant;
+    state.cur_guard = state.guard;
+    /* средние цены */
+    state.pr_gold = 1000; // руб/кг
+    state.pr_land = 200;  // руб/га
+    state.pr_grain = 10;  // руб/тонн
+    state.pr_peasant = 50;  // руб/душу
+    state.pr_guard = 100; // руб/чел
+    state.cur_year = 1;
+    state.crop_yield_level = random(5);
+    state.caravane_year = 0;
+    state.caravane_money = 0;
+    state.flag_crisis = false;
+    stage = GameIntro;
 
 }
 
@@ -80,19 +47,477 @@ State Game::get_status()
     return state;
 }
 
-Screen* Game::run()
+Interrupt Game::run()
 {
-    if (stage == Start)
+    Interrupt ret = WaitMessage;
+    switch (stage)
     {
-        return new Message;
+        case GameIntro:
+        case GameRules:
+        case StartTurn:
+        case Crisis:
+        case StartExchange:
+        case NoMoney:
+        case RobCaravane:
+            ret = WaitMessage;
+            break;
+        case FirstChoice:
+        case Trade:
+        case ChooseGoods:
+        case BuyOrSell:
+        case EquipCaravane:
+            ret = WaitChoice;
+            break;
+        case GoodsNumber:
+        case CaravaneMoney:
+        case RequestMetropolitan:
+            ret = WaitInput;
+            break;
+        case FinishGame:
+            ret = EndGame;
+            break;
+        default:
+            break;
     }
-    return new Choice;
+    return ret;
+}
+
+std::string Game::getMessage()
+{
+    std::string ret = "";
+    switch (stage)
+    {
+        case GameIntro:
+            ret = get_intro();
+            stage = FirstChoice;
+            break;
+        case GameRules:
+            ret = get_rules(1);
+            ret += get_rules(2);
+            stage = FirstChoice;
+            break;
+        case StartTurn:
+            ret = get_state();
+            if (state.cur_year > 1)
+            {
+                ret += get_visir_message();
+            }
+            if (state.caravane_year == 5)
+            {
+                ret += get_caravan_arrival();
+                state.caravane_year = 0;
+            }
+            if (random(100) < 25)
+            {
+                stage = Crisis;
+            }
+            else
+            {
+                stage = Trade;
+            }
+            break;
+        case StartExchange:
+            make_prices();
+            ret = get_exchange();
+            stage = ChooseGoods;
+            break;
+        case NoMoney:
+            ret = get_no_money();
+            stage = next_stage;
+            break;
+        case Crisis:
+            ret = get_crisis();
+            stage = EquipCaravane;
+            break;
+        case RobCaravane:
+            if (state.caravane_year > 1 && random(100) < 20)
+            {
+                ret = get_loot_caravan();
+            }
+            stage = RequestMetropolitan;
+//            stage = FinishGame;
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
+void Game::sendChoice(unsigned int choice)
+{
+    switch (stage)
+    {
+        case FirstChoice:
+            switch (choice)
+            {
+                case 1:
+                    stage = StartTurn;
+                    break;
+                case 2:
+                    stage = GameRules;
+                    break;
+                case 3:
+                    stage = FinishGame;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case Trade:
+            switch (choice)
+            {
+                case 1:
+                    stage = StartExchange;
+                    break;
+                case 2:
+                    if (random(100) < 25)
+                    {
+                        stage = EquipCaravane;
+                        break;
+                    }
+                    stage = RobCaravane;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case ChooseGoods:
+            switch (choice)
+            {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    state.article = choice;
+                    stage = BuyOrSell;
+                    break;
+                case 6:
+                    if (random(100) < 25)
+                    {
+                        stage = EquipCaravane;
+                        break;
+                    }
+                    stage = RobCaravane;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case BuyOrSell:
+            switch (choice)
+            {
+                case 1:
+                    state.to_buy = true;
+                    stage = GoodsNumber;
+                    break;
+                case 2:
+                    state.to_buy = false;
+                    stage = GoodsNumber;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case EquipCaravane:
+            switch (choice)
+            {
+                case 1:
+                    stage = CaravaneMoney;
+                    break;
+                case 2:
+                    stage = RobCaravane;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
+std::vector<std::string> Game::getCases()
+{
+    std::vector<std::string> ret;
+    std::string topic;
+    switch (stage)
+    {
+        case FirstChoice:
+            ret.push_back("");
+            ret.push_back("Новая Игра");
+            ret.push_back("Помощь");
+            ret.push_back("Выход");
+            break;
+        case Trade:
+            ret.push_back("\n\nЖелаете торговать на бирже?");
+            ret.push_back("Да");
+            ret.push_back("Нет");
+            break;
+        case ChooseGoods:
+            ret.push_back("\nВыберите товар, с которым проводить операции:");
+            ret.push_back("Золото");
+            ret.push_back("Земля");
+            ret.push_back("Зерно");
+            ret.push_back("Крестьяне");
+            ret.push_back("Гвардия");
+            ret.push_back("Выход с биржи");
+            break;
+        case BuyOrSell:
+            topic = "Выберите тип операций";
+            switch (state.article)
+            {
+                case 1:
+                    topic += " с золотом:\n";
+                    break;
+                case 2:
+                    topic += " с землей:\n";
+                    break;
+                case 3:
+                    topic += " с зерном:\n";
+                    break;
+                case 4:
+                    topic += " с крестьянами:\n";
+                    break;
+                case 5:
+                    topic += " с гвардией:\n";
+                    break;
+            }
+            ret.push_back(topic);
+            ret.push_back("Покупать");
+            ret.push_back("Продавать");
+            break;
+        case EquipCaravane:
+            ret.push_back("\n\nЗаморский купец предлагает снарядить караван.\nВы согласны?");
+            ret.push_back("Да");
+            ret.push_back("Нет");
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
+void Game::sendInput(std::string input)
+{
+    long count;
+    switch (stage)
+    {
+        case GoodsNumber:
+            count = StringToNumber<long>(input);
+            if (state.to_buy)
+            {
+                switch (state.article)
+                {
+                    case 1:
+                        if (count * state.cur_pr_gold > state.cur_money)
+                        {
+                            stage = NoMoney;
+                            NMreason = ForTrade;
+                            next_stage = ChooseGoods;
+                        }
+                        else
+                        {
+                            state.cur_gold += count;
+                            state.cur_money -= count * state.cur_pr_gold;
+                            stage = StartExchange;
+                        }
+                        break;
+                    case 2:
+                        if (count * state.cur_pr_land > state.cur_money)
+                        {
+                            stage = NoMoney;
+                            NMreason = ForTrade;
+                            next_stage = ChooseGoods;
+                        }
+                        else
+                        {
+                            state.cur_land += count;
+                            state.cur_money -= count * state.cur_pr_land;
+                            stage = StartExchange;
+                        }
+                        break;
+                    case 3:
+                        if (count * state.cur_pr_grain > state.cur_money)
+                        {
+                            stage = NoMoney;
+                            NMreason = ForTrade;
+                            next_stage = ChooseGoods;
+                        }
+                        else
+                        {
+                            state.cur_grain += count;
+                            state.cur_money -= count * state.cur_pr_grain;
+                            stage = StartExchange;
+                        }
+                        break;
+                    case 4:
+                        if (count * state.cur_pr_peasant > state.cur_money)
+                        {
+                            stage = NoMoney;
+                            NMreason = ForTrade;
+                            next_stage = ChooseGoods;
+                        }
+                        else
+                        {
+                            state.cur_peasant += count;
+                            state.cur_money -= count * state.cur_pr_peasant;
+                            stage = StartExchange;
+                        }
+                        break;
+                    case 5:
+                        if (count * state.cur_pr_guard > state.cur_money)
+                        {
+                            stage = NoMoney;
+                            NMreason = ForTrade;
+                            next_stage = ChooseGoods;
+                        }
+                        else
+                        {
+                            state.cur_guard += count;
+                            state.cur_money -= count * state.cur_pr_guard;
+                            stage = StartExchange;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                switch (state.article)
+                {
+                    case 1:
+                        state.cur_gold -= count;
+                        state.cur_money += count * state.cur_pr_gold;
+                        break;
+                    case 2:
+                        state.cur_land -= count;
+                        state.cur_money += count * state.cur_pr_land;
+                        break;
+                    case 3:
+                        state.cur_grain -= count;
+                        state.cur_money += count * state.cur_pr_grain;
+                        break;
+                    case 4:
+                        state.cur_peasant -= count;
+                        state.cur_money += count * state.cur_pr_peasant;
+                        break;
+                    case 5:
+                        state.cur_guard -= count;
+                        state.cur_money += count * state.cur_pr_guard;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            break;
+        case CaravaneMoney:
+            count = StringToNumber<long>(input);
+            if (count > state.money)
+            {
+                stage = NoMoney;
+                NMreason = ForCaravane;
+            }
+            else
+            {
+                state.money -= count;
+                state.caravane_money = count;
+                // TODO: сообщение об отправке каравана
+                Mreason = Caravane;
+                stage = RequestMetropolitan;
+//                stage = FinishGame;
+            }
+            break;
+        case RequestMetropolitan:
+            count = StringToNumber<long>(input);
+            if (count > state.money)
+            {
+                stage = NoMoney;
+                NMreason = ForTemple;
+            }
+            else
+            {
+                state.for_temple += count;
+                Mreason = Temple;
+            }
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
+std::string Game::getInputPrompt()
+{
+    std::string ret;
+    switch (stage)
+    {
+        case GoodsNumber:
+            if (state.to_buy)
+            {
+                switch (state.article)
+                {
+                    case 1:
+                        ret = "\nСколько килограммов золота желаете купить: ";
+                        break;
+                    case 2:
+                        ret = "\nСколько гектаров земли желаете купить: ";
+                        break;
+                    case 3:
+                        ret = "\nСколько тонн зерна желаете купить: ";
+                        break;
+                    case 4:
+                        ret = "\nСколько душ крестьян желаете купить: ";
+                        break;
+                    case 5:
+                        ret = "\nСколько гвардейцев желаете нанять: ";
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                switch (state.article)
+                {
+                    case 1:
+                        ret = "\nСколько килограммов золота желаете продать: ";
+                        break;
+                    case 2:
+                        ret = "\nСколько гектаров земли желаете продать: ";
+                        break;
+                    case 3:
+                        ret = "\nСколько тонн зерна желаете продать: ";
+                        break;
+                    case 4:
+                        ret = "\nСколько душ крестьян желаете продать: ";
+                        break;
+                    case 5:
+                        ret = "\nСколько гвардейцев желаете продать: ";
+                        break;
+                    default:
+                        break;
+                }
+            }
+            break;
+        case CaravaneMoney:
+            ret = MakeString() << "\nВ казне - " << state.money << " руб, сколько на караван:";
+            break;
+        case RequestMetropolitan:
+            ret = MakeString() << "\n\nМитрополит Вашего государства просит денег на новый храм."
+                               << "\nСколько выделяте (в казне " << state.money << " руб.): ";
+            break;
+        default:
+            break;
+    }
+    return ret;
 }
 
 std::string Game::get_state() //long god)
 {
     std::string ret;
-    long year = 0;
 
 /*    if (fl_end == 1)
     {
@@ -103,7 +528,7 @@ std::string Game::get_state() //long god)
     {
 */
     ret = MakeString() << "---------------------------------------------------------------------------------\n"
-        << "                   Состояние Ваших дел на " << year << "-й год правления."
+        << "                   Состояние Ваших дел на " << state.cur_year << "-й год правления."
 //    }
         << "\nНаличность в казне: " << state.money << " руб."
         << "\n╔════════════════╤════════════╗"
@@ -180,7 +605,7 @@ std::string Game::get_visir_message()
 
 std::string Game::get_caravan_arrival()
 {
-    long profit = state.for_caravane * 6; // прибыль
+    long profit = state.caravane_money * 6; // прибыль
     state.cur_money += profit;
     return MakeString() << "\n\nВернулся Ваш караван! Получено прибыли на сумму " << profit << " руб.!";
 }
@@ -193,16 +618,25 @@ std::string Game::get_loot_caravan()
     if (n < 5)
     {
         ret = "\n\nПроизошло ЧП! Ваш караван полностью разграблен бандитами!!!";
-        state.flag_caravane = 0;
-        state.for_caravane = 0;
+        state.caravane_year = 0;
+        state.caravane_money = 0;
     }
     else
     {
         n = random(40);
-        grab = (state.for_caravane * n) / 100;
+        grab = (state.caravane_money * n) / 100;
         ret += MakeString() << "\n\nВнимание, ЧП! Ваш караван ограблен бандитами на сумму " << grab << " руб.!!!";
-        state.for_caravane -= grab;
+        state.caravane_money -= grab;
     }
+    return ret;
+}
+
+std::string Game::get_crisis()
+{
+    std::string ret;
+    ret = "\n\nМеждународный кризис! Торговля невозможна!" \
+          "\nВашему государству объявлена экономическая блокада!\n";
+    state.flag_crisis = true;
     return ret;
 }
 
@@ -252,6 +686,15 @@ std::string Game::get_inherit()
     return ret;
 }
 
+void Game::make_prices()
+{
+    state.cur_pr_gold  = ((state.pr_gold * 75) / 100)  + (random(50) * state.pr_gold / 100);
+    state.cur_pr_land  = ((state.pr_land * 75) / 100)  + (random(50) * state.pr_land / 100);
+    state.cur_pr_grain = ((state.pr_grain * 75) / 100) + (random(50) * state.pr_grain / 100);
+    state.cur_pr_peasant = ((state.pr_peasant * 75) / 100) + (random(50) * state.pr_peasant / 100);
+    state.cur_pr_guard = ((state.pr_guard * 75) / 100) + (random(50) * state.pr_guard / 100);
+}
+
 std::string Game::get_exchange()
 {
     double f;
@@ -261,16 +704,16 @@ std::string Game::get_exchange()
         << "\n║    Название    │    Запасы    │ Текущая цена │ Текущий курс ║"
         << "\n╠════════════════╪══════════════╪══════════════╪══════════════╣";
     f = state.cur_pr_gold * 100 / state.pr_gold;
-    ret += MakeString() << "\n║ Золото, кг     │ " << state.cur_gold <<  " │ " << state.cur_pr_gold <<  " │ " << f << "       ║";
+    ret += MakeString() << "\n║ Золото, кг     │ " << std::setw(12) << state.cur_gold <<  " │ " << std::setw(12) << state.cur_pr_gold <<  " │ " << std::setw(12) << f << " ║";
     f = state.cur_pr_land * 100 / state.pr_land;
-    ret += MakeString() << "\n║ Земля, га      │ " << state.cur_land <<  " │ " << state.cur_pr_land <<  " │ " << f << "       ║";
+    ret += MakeString() << "\n║ Земля, га      │ " << std::setw(12) << state.cur_land <<  " │ " << std::setw(12) << state.cur_pr_land <<  " │ " << std::setw(12) << f << " ║";
     f = state.cur_pr_grain * 100 / state.pr_grain;
-    ret += MakeString() << "\n║ Зерно, тонн    │ " << state.cur_grain << " │ " << state.cur_pr_grain << " │ " << f << "       ║";
+    ret += MakeString() << "\n║ Зерно, тонн    │ " << std::setw(12) << state.cur_grain << " │ " << std::setw(12) << state.cur_pr_grain << " │ " << std::setw(12) << f << " ║";
     f = state.cur_pr_peasant * 100 / state.pr_peasant;
-    ret += MakeString() << "\n║ Крестьяне, душ │ " << state.cur_peasant << " │ " << state.cur_pr_peasant << " │ " << f << "       ║";
+    ret += MakeString() << "\n║ Крестьяне, душ │ " << std::setw(12) << state.cur_peasant << " │ " << std::setw(12) << state.cur_pr_peasant << " │ " << std::setw(12) << f << " ║";
     f = state.cur_pr_guard * 100 / state.pr_guard;
-    ret += MakeString() << "\n║ Гвардия, чел.  │ " << state.cur_guard << " │ " << state.cur_pr_guard << " │ " << f << "       ║";
-    ret += "\n╚════════════════╧══════════════╧══════════════╧══════════════╝";
+    ret += MakeString() << "\n║ Гвардия, чел.  │ " << std::setw(12) << state.cur_guard << " │ " << std::setw(12) << state.cur_pr_guard << " │ " << std::setw(12) << f << " ║";
+    ret += "\n╚════════════════╧══════════════╧══════════════╧══════════════╝\n";
     return ret;
 }
 
@@ -303,6 +746,34 @@ std::string Game::get_wife_has_died()
     cur_money -= cur;
     fl_marry = 0;
 */
+    return ret;
+}
+
+std::string Game::get_no_money()
+{
+    std::string ret = "";
+    switch (NMreason)
+    {
+        case ForTrade:
+            ret = "\nУ вас не хватает денег чтобы оплатить покупку!";
+            next_stage = ChooseGoods;
+            break;
+        case ForCaravane:
+            ret = MakeString() << "\nУ Вас столько нету. Вы можете отправить от 0 до " << state.money << " руб.";
+            if (random(100) < 25)
+            {
+                next_stage = EquipCaravane;
+                break;
+            }
+            next_stage = RobCaravane;
+            break;
+        case ForTemple:
+            ret = MakeString() << "\nУ Вас столько нету. Вы можете пожертвовать от 0 до " << state.money << " руб.";
+            next_stage = RequestMetropolitan;
+            break;
+        default:
+            break;
+    }
     return ret;
 }
 
@@ -434,6 +905,10 @@ std::string Game::get_turn()
     else
     {
         state.grab_money = -1;
+    }
+    if (state.caravane_year > 0)
+    {
+        ++state.caravane_year;
     }
     return "0";
 }
@@ -568,12 +1043,20 @@ std::string t_to_string(T i)
     return s;
 }
 
+template <typename T>
+T StringToNumber(std::string &Text) //Text not by const reference so that the function can be used with a 
+{                                   //character array as argument
+    std::stringstream ss(Text);
+    T result;
+    return ss >> result ? result : 0;
+}
+
 unsigned int random(int max)
 {
     return rand() % max;
 }
 
-std::string get_intro()
+std::string Game::get_intro()
 {
     return std::string("╔═══════════════════════════════════════════════════════════════════╗\n" \
                   "║ █   █ ▄▀▀▀▄ █▀▀▀▄ ▄▀▀▀▄   ▄▀█ █▀▀▀█ █▀▀▀▄ ▄▀▀▀▄ ▀▀█▀▀ █▀▀▀▄ ▄▀▀▀▄ ║\n" \

@@ -142,31 +142,83 @@ long menu(long c, const char *s, int x, int y)
     return ch - 48;
 }
 
+void showMessage(std::string message)
+{
+    std::cout << message;
+    return;
+}
+
+unsigned int getChoice(std::vector<std::string> cases)
+{
+    unsigned int ret = 0;
+    unsigned int i = 1;
+    std::vector<std::string>::iterator iter;
+    iter = cases.begin();
+    // первая строка - вопрос, если нет вопроса - то пустая строка (пропускаем)
+    if ((*iter).size() > 0)
+    {
+        std::cout << *iter << std::endl;
+    }
+    ++iter;
+    while (iter != cases.end())
+    {
+        std::cout << i << ". " << *iter << std::endl;
+        ++i;
+        ++iter;
+    }
+    std::cout << "==> ";
+    std::cin >> ret;
+    return ret;
+}
+
+std::string getInput(std::string prompt)
+{
+    std::string ret = "";
+    std::cout << prompt << " ==> ";
+    std::cin >> ret;
+    return ret;
+}
+
 int main(int argc, char *argv[])
 {
-    long n;
-    if ((argc <= 1) || (strcmp(argv[1], "no") != 0))
+    Interrupt interrupt = StartGame;
+    Game game;
+    while (interrupt != EndGame)
     {
-        std::string intro = get_intro();
-        std::cout << intro;
-    }
-    do
-    {
-        clrscr();
-        n = menu(3, "'Новая Игра' 'Помощь' 'Выход'", 33, 11);
-        if (n == 1)
+        interrupt = game.run();
+        switch (interrupt)
         {
-            new_game();
-        }
-        if (n == 2)
-        {
-            std::string page = get_rules(1);
-            page += get_rules(2);
-            std::cout << page;
+            case StartGame:
+                break;
+            case WaitMessage:
+                {
+                    std::string message;
+                    message = game.getMessage();
+                    showMessage(message);
+                }
+                break;
+            case WaitChoice:
+                {
+                    std::vector<std::string> cases;
+                    cases = game.getCases();
+                    unsigned int choice = getChoice(cases);
+                    game.sendChoice(choice);
+                }
+                break;
+            case WaitInput:
+                {
+                    std::string input, prompt;
+                    prompt = game.getInputPrompt();
+                    input = getInput(prompt);
+                    game.sendInput(input);
+                }
+                break;
+            case EndGame:
+            default:
+                break;
         }
     }
-    while (n != 3);
-    clrscr();
+
     return 0;
 }
 
@@ -1201,7 +1253,6 @@ void new_game()
     long cur;
     clrscr();
     Game game;
-    Screen *screen;
     beg_init();
     i = 1;
     fl_kar = 0;
@@ -1215,8 +1266,6 @@ void new_game()
     {
         clrscr();
 
-        screen = game.run();
-        screen->show();
         std::cout << game.get_state();
 //        prn_sost(i); // game.get_state()
         if (i > 1)
@@ -1271,7 +1320,7 @@ void new_game()
             n = random(100);
             if (n < 20)
             {
-                std::sout << game.get_loot_caravan();
+                std::cout << game.get_loot_caravan();
 //                grabeg_kar(); // get_loot_caravan
             }
         }
@@ -1375,7 +1424,7 @@ void new_game()
             n = random(100);
             if (n < 10)
             {
-                std::cout << get_born_son();
+                std::cout << game.get_born_son();
 //                rodilsa_sin(); // get_born_son()
 /*                printf("\n\nНажмите любую клавишу...");
                 ch = getchar();
