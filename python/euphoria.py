@@ -3,11 +3,11 @@ from transitions import Machine
 import random
 
 
-
 # ===========================================================
 class WidgetInfo(object):
     def __init__(self):
         pass
+
 
 class MessageInfo(WidgetInfo):
     def __init__(self, message=''):
@@ -16,6 +16,7 @@ class MessageInfo(WidgetInfo):
 
     def get_message(self):
         return self.message
+
 
 class InputInfo(WidgetInfo):
     def __init__(self, message=''):
@@ -35,6 +36,7 @@ class InputInfo(WidgetInfo):
 
     def set_response(self, response=''):
         self.response = response
+
 
 class ChoiceInfo(WidgetInfo):
     def __init__(self, message='', choices=[]):
@@ -56,14 +58,15 @@ class ChoiceInfo(WidgetInfo):
         self.choices = choices
 
 
-
 # ===========================================================
 class Game(object):
-    """ """
+    """
+    """
     def __init__(self):
         self.euphoria = Euphoria()
 
-    """ """
+    """
+    """
     def run(self):
         print('Current state: {}'.format(self.euphoria.state))
         while self.euphoria.state != 'finish':
@@ -84,7 +87,8 @@ class Game(object):
                 print('Current state: {}'.format(self.euphoria.state))
         print('Current state: {}'.format(self.euphoria.state))
 
-    """ """
+    """
+    """
     def __process(self):
         if type(self.euphoria.widget_info).__name__ == 'MessageInfo':
             print(self.euphoria.widget_info.message)
@@ -98,11 +102,10 @@ class Game(object):
             print(self.euphoria.widget_info.message)
             for i in range(len(self.euphoria.widget_info.choices)):
                 print('{}. {}'.format(i, self.euphoria.widget_info.choices[i]))
-            # TODO: add vatidation
+            # TODO: add validation
             response = input('==> ')
             self.euphoria.widget_info.set_response = response
             return response
-
 
 
 # ===========================================================
@@ -112,36 +115,41 @@ class Euphoria(object):
         self.widget_info = WidgetInfo()
         self._init_machine()
 
-    """ """
-    def _fork(self):
+    """
+    """
+    @staticmethod
+    def _fork():
         # print('fork')
         if random.randint(0, 1) == 1:
             return False
         return True
 
-    """ """
+    """
+    """
     def _init_machine(self):
         self.states = ['GameIntro', 'GameMenu', 'StartTurn', 'GameRules', 'Crisis',
                        'Trade', 'StartExchange', 'ChooseGoods', 'BuyOrSell', 'GoodsQuantity',
-                       'EquipCaravane', 'CaravaneMoney', 'RobCaravane',
-                       'RequestMitropolitan', 'SpendMoney', 'WarReason', 'CatchVisir', 'Inherit', 'BornSon',
+                       'EquipCaravan', 'CaravanMoney', 'RobCaravan',
+                       'RequestMetropolitan', 'SpendMoney', 'WarReason', 'CatchVizier', 'Inherit', 'BornSon',
                        'WarChoice', 'GetMarried', 'DeadWifeMessenger', 'WarBegin', 'AskWife', 'Sick', 'Shaman',
                        'EndTurn', 'Revolution', 'Result', 'FinishGame',
-                       'start', 'message', 'input', 'choice', 'finish'] # for test
+                       'start', 'message', 'input', 'choice', 'finish']  # for test
         self.transitions = [
             {'trigger': 'ShowIntro', 'source': 'GameIntro', 'dest': 'GameMenu', 'after': '_intro'},
             {'trigger': 'GameMenu', 'source': 'GameMenu', 'dest': 'StartTurn', 'after': '_game_menu'},
             {'trigger': 'GameMenu', 'source': 'GameRules', 'dest': 'GameMenu', 'after': '_game_menu'},
             {'trigger': 'GameRules', 'source': 'GameMenu', 'dest': 'GameRules', 'after': '_game_rules'},
             {'trigger': 'FinishGame', 'source': 'GameMenu', 'dest': 'FinishGame', 'after': '_finish_game'},
-            {'trigger': 'StepMessage', 'source': 'start', 'dest': 'message', 'conditions': '_fork', 'after': '_message'},
+            {'trigger': 'StepMessage', 'source': 'start', 'dest': 'message', 'conditions': '_fork',
+             'after': '_message'},
             {'trigger': 'StepInput', 'source': 'start', 'dest': 'input', 'conditions': '_fork', 'after': '_input'},
             {'trigger': 'StepChoice', 'source': 'start', 'dest': 'choice', 'after': '_choice'},
             {'trigger': 'Step', 'source': 'message', 'dest': 'finish'},
             {'trigger': 'Step', 'source': 'input', 'dest': 'finish'},
             {'trigger': 'Step', 'source': 'choice', 'dest': 'finish'}
         ]
-        self.machine = Machine(model=self, states=self.states, transitions=self.transitions, initial='start', ignore_invalid_triggers=True)
+        self.machine = Machine(model=self, states=self.states, transitions=self.transitions, initial='start',
+                               ignore_invalid_triggers=True)
 
     def _message(self):
         self.widget_info = MessageInfo(message='Message. Current state: {}'.format(self.state))
@@ -153,8 +161,10 @@ class Euphoria(object):
         l = ['First', 'Second', 'Third']
         self.widget_info = ChoiceInfo(message='Choice. Current state: {}'.format(self.state), choices=l)
 
-    """ """
-    def _intro(self):
+    """
+    """
+    @staticmethod
+    def _intro():
         text = """
         ╔═══════════════════════════════════════════════════════════════════╗
         ║ █   █ ▄▀▀▀▄ █▀▀▀▄ ▄▀▀▀▄   ▄▀█ █▀▀▀█ █▀▀▀▄ ▄▀▀▀▄ ▀▀█▀▀ █▀▀▀▄ ▄▀▀▀▄ ║
@@ -170,17 +180,20 @@ class Euphoria(object):
         ║       ▀▄▄▄▀  █     █    █    ▀▄▄▄▄▄▀ █       █     █ ▄▀    █      ║
         ╚═══════════════════════════════════════════════════════════════════╝"""
 
-    """ """
+    """
+    """
     def _game_menu(self):
         l = ['Новая игра', 'Помощь (правила)', 'Выход']
         self.__choice(title='Главное меню', l=l)
         self._choice = input('==> ')
 
-    """ """
+    """
+    """
     def _game_rules(self):
         pass
 
-    """ """
+    """
+    """
     def _finish_game(self):
         pass
 
