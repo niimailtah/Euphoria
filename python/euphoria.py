@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 from transitions import Machine
 from transitions import logger
-import logging
+from pathlib import Path
+import time
+import configparser
 import random
+import logging
 
 VERSION = '0.0.1'
 
@@ -353,12 +356,23 @@ class Euphoria(Machine):
 
 # ==================================================================================================================================================================
 if __name__ == "__main__":
-    handler = logging.FileHandler('euphoria.log')
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    # -------------------------------------------------------
+    # parse ini file
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.read('euphoria.ini')
+    # -------------------------------------------------------
+    # logging
+    __log_directory = Path('./logs')
+    if not __log_directory.is_dir():
+        __log_directory.mkdir()
+    __log_handler = logging.FileHandler('./logs/{}_euphoria.log'.format(time.strftime('%Y-%m-%d_%H:%M:%S')))
+    __log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    __log_handler.setFormatter(__log_formatter)
+    logger.addHandler(__log_handler)
     logger.setLevel(logging.INFO)
     logger.info('-' * 80)
+    # -------------------------------------------------------
+    # game
     euphoria = Euphoria()
     while euphoria.state != 'End':
         euphoria.step()
