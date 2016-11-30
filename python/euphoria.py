@@ -8,39 +8,10 @@ import random
 import logging
 # -------------------------------------------------------------------------
 from rule import Rules
+from exchange import Exchange
+from war import War
 
-VERSION = '0.0.4'
-
-# ==================================================================================================================================================================
-class Exchange(Machine):
-    def __init__(self):
-        self.states = [
-            {'name': 'Begin'},         #
-            {'name': 'End'},           #
-            {'name': 'Error'}          #
-        ]
-        self.transitions = [
-            {'trigger': 'step', 'source': 'Begin',      'dest': 'End'}
-        ]
-        Machine.__init__(self, states=self.states, transitions=self.transitions,
-                         initial='Begin', send_event=True)
-        self.answer = None
-
-
-# ==================================================================================================================================================================
-class War(Machine):
-    def __init__(self):
-        self.states = [
-            {'name': 'Begin'},         #
-            {'name': 'End'},           #
-            {'name': 'Error'}          #
-        ]
-        self.transitions = [
-            {'trigger': 'step', 'source': 'Begin',      'dest': 'End'}
-        ]
-        Machine.__init__(self, states=self.states, transitions=self.transitions,
-                         initial='Begin', send_event=True)
-        self.answer = None
+VERSION = '0.0.5'
 
 
 # ==================================================================================================================================================================
@@ -121,6 +92,7 @@ class Euphoria(Machine):
         random.seed()
         self.random_number = None
         self.answer = 0
+        self.current_year = 1
 
     def on_enter_Rules(self, event):
         rule = Rules()

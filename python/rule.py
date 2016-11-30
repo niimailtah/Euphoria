@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+from transitions import Machine
+from transitions import logger
+
+
 # ==================================================================================================================================================================
 class Rules(Machine):
     def __init__(self):
