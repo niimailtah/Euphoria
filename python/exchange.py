@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from transitions import Machine
 from transitions import logger
 

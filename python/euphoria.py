@@ -11,7 +11,7 @@ from rule import Rules
 from exchange import Exchange
 from war import War
 
-VERSION = '0.0.5'
+VERSION = '0.0.6'
 
 
 # ==================================================================================================================================================================
@@ -25,7 +25,9 @@ class Euphoria(Machine):
             {'name': 'Node4'},             # after CaravanSupply before CaravanRob
             {'name': 'Node5'},             # after CaravanRob before Metropolitan
             {'name': 'Node6'},             # after Metropolitan before War
-            {'name': 'Node7'},             # after War before ...
+            {'name': 'Node7'},             # after War before VizirCatch
+            {'name': 'Node8'},             # after VizirCatch before Inheritance
+            {'name': 'Node9'},             # after Inheritance before ...
             {'name': 'End'},               #
             {'name': 'Intro'},             #
             {'name': 'MainMenu'},          #
@@ -67,28 +69,34 @@ class Euphoria(Machine):
             {'trigger': 'step', 'source': 'PrintState', 'dest': 'Node1'},
             {'trigger': 'step', 'source': 'VizirMessage', 'dest': 'Node1'},
             {'trigger': 'step', 'source': 'Node1', 'dest': 'CaravanProfit', 'conditions': 'is5YearCaravan'},
-            {'trigger': 'step', 'source': 'Node1', 'dest': 'Node2', 'before': 'update_random'},
+            {'trigger': 'step', 'source': 'Node1', 'dest': 'Node2'},
             {'trigger': 'step', 'source': 'CaravanProfit', 'dest': 'Node2', 'before': 'update_random'},
             {'trigger': 'step', 'source': 'Node2', 'dest': 'Crisis', 'conditions': 'isCrisis'},
-            {'trigger': 'step', 'source': 'Crisis', 'dest': 'Node3', 'before': 'update_random'},
+            {'trigger': 'step', 'source': 'Crisis', 'dest': 'Node3'},
             {'trigger': 'step', 'source': 'Node2', 'dest': 'Exchange', 'unless': 'isCrisis'},
-            {'trigger': 'step', 'source': 'Exchange', 'dest': 'Node3', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Node3', 'dest': 'CaravanSupply', 'conditions': 'is0YearCaravan', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Node3', 'dest': 'Node4', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'CaravanSupply', 'dest': 'Node4', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Node4', 'dest': 'CaravanRob', 'unless': 'is0YearCaravan', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Node4', 'dest': 'Node5', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'CaravanRob', 'dest': 'Node5', 'before': 'update_random'},
+            {'trigger': 'step', 'source': 'Exchange', 'dest': 'Node3'},
+            {'trigger': 'step', 'source': 'Node3', 'dest': 'CaravanSupply', 'conditions': 'is0YearCaravan'},
+            {'trigger': 'step', 'source': 'Node3', 'dest': 'Node4'},
+            {'trigger': 'step', 'source': 'CaravanSupply', 'dest': 'Node4'},
+            {'trigger': 'step', 'source': 'Node4', 'dest': 'CaravanRob', 'unless': 'is0YearCaravan'},
+            {'trigger': 'step', 'source': 'Node4', 'dest': 'Node5'},
+            {'trigger': 'step', 'source': 'CaravanRob', 'dest': 'Node5'},
             {'trigger': 'step', 'source': 'Node5', 'dest': 'Metropolitan', 'conditions': 'isReceiveMetropolitan'},
-            {'trigger': 'step', 'source': 'Node5', 'dest': 'Node6', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Metropolitan', 'dest': 'Node6', 'before': 'update_random'},
+            {'trigger': 'step', 'source': 'Node5', 'dest': 'Node6'},
+            {'trigger': 'step', 'source': 'Metropolitan', 'dest': 'Node6'},
             {'trigger': 'step', 'source': 'Node6', 'dest': 'War', 'conditions': 'isReasonWar'},
-            {'trigger': 'step', 'source': 'Node6', 'dest': 'Node7', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'War', 'dest': 'Node7', 'before': 'update_random'},
-            {'trigger': 'step', 'source': 'Node7', 'dest': 'End'}
+            {'trigger': 'step', 'source': 'Node6', 'dest': 'Node7'},
+            {'trigger': 'step', 'source': 'War', 'dest': 'Node7'},
+            {'trigger': 'step', 'source': 'Node7', 'dest': 'VizirCatch'},
+            {'trigger': 'step', 'source': 'Node7', 'dest': 'Node8'},
+            {'trigger': 'step', 'source': 'VizirCatch', 'dest': 'Node8'},
+            {'trigger': 'step', 'source': 'Node8', 'dest': 'Inheritance'},
+            {'trigger': 'step', 'source': 'Node8', 'dest': 'Node9'},
+            {'trigger': 'step', 'source': 'Inheritance', 'dest': 'Node9'},
+            {'trigger': 'step', 'source': 'Node9', 'dest': 'End'}
         ]
         Machine.__init__(self, states=self.states, transitions=self.transitions,
-                         initial='Begin', send_event=True)
+                         initial='Begin', send_event=True, before_state_change='update_random')
         random.seed()
         self.random_number = None
         self.answer = 0
@@ -135,6 +143,7 @@ class Euphoria(Machine):
         self.caravane_money = 0
         self.is_crisis = False
         self.are_you_married = False
+        self.vizir_grab_money = 0
         self.crop_yield_level = None
         self.total_guard_maintenance = None
         self.is_revolution = False
@@ -196,8 +205,6 @@ class Euphoria(Machine):
             print('Караван отправился за три-девять земель...')
             self.money -= self.caravane_money
 
-        pass
-
     def on_enter_CaravanRob(self, event):
         logger.info('on_enter_CaravanRob: self.random_number = {}'.format(self.random_number))
         if self.random_number < 20:
@@ -228,16 +235,38 @@ class Euphoria(Machine):
             war.step()
 
     def on_enter_VizirCatch(self, event):
-        # TODO: добавить обработку
-        pass
+        print('Ваша полиция поймала сбежавшего визиря!')
+        print('У него конфисковано все имущество, а его самого посадили на кол!')
+        # TODO
+        # cur = (random(50) + 50) * self.vizir_grab_money / 100
+        cur = 0
+        print('В казну возвращено {} руб.'.format(cur))
+        self.money += cur
+
 
     def on_enter_Inheritance(self, event):
-        # TODO: добавить обработку
-        pass
+        logger.info('on_enter_Inheritance: self.random_number = {}'.format(self.random_number))
+        if self.random_number < 10:
+            # TODO: добавить обработку
+            print('Умер Ваш дальний родственник. Вы получили наследство в размере:')
+            print('╔═════════════════╤════════════╗')
+            print('║    Название     │   Запасы   ║')
+            print('╠═════════════════╪════════════╣')
+            print('║ Наличность, руб │ {:>10} ║'.format(self.money))
+            print('║ Золото, кг.     │ {:>10} ║'.format(self.gold))
+            print('║ Земля, га       │ {:>10} ║'.format(self.land))
+            print('║ Зерно, тонн     │ {:>10} ║'.format(self.grain))
+            print('║ Крестьяне, душ  │ {:>10} ║'.format(self.peasant))
+            print('║ Гвардия, чел.   │ {:>10} ║'.format(self.guard))
+            print('╚═════════════════╧════════════╝')
 
     def on_enter_ChildBirthDay(self, event):
-        # TODO: добавить обработку
-        pass
+        print('У Вас родился сын! Поздравляю! Ваша династия не угаснет в веках!')
+        # TODO
+        # cur = (random(40) + 20) * self.money / 100
+        cur = 0
+        print('На праздничный банкет по случаю рождения сына потрачено {} руб.'.format(cur))
+        self.money += cur
 
     def on_enter_Marriage(self, event):
         # TODO: добавить обработку
@@ -245,7 +274,7 @@ class Euphoria(Machine):
 
     def on_enter_WifeDead(self, event):
         # TODO: добавить обработку
-        pass
+        print('Прибыл гонец от королевы. Впустить (y/n)? ')
 
     def on_enter_WifeIn(self, event):
         # TODO: добавить обработку
@@ -269,7 +298,7 @@ class Euphoria(Machine):
 
     def on_enter_NYParty(self, event):
         # TODO: добавить обработку
-        printf('Будете устраивать Новогодний Бал (y/n)?  ==> ')
+        print('Будете устраивать Новогодний Бал (y/n)?  ==> ')
 
     def on_enter_EndTurn(self, event):
         # TODO: добавить обработку
@@ -400,6 +429,13 @@ class Euphoria(Machine):
 
     def areYouMarried(self, event):
         return self.are_you_married
+
+
+    def isVizirCatch(self, event):
+        logger.info('isVizirCatch: self.random_number = {}'.format(self.random_number))
+        if self.random_number < 15:
+            return True
+        return False
 
     # утилитки
     def update_random(self, event):
