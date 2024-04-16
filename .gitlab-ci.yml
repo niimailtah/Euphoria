@@ -1,0 +1,63 @@
+stages:
+    - prepare
+    - build
+    - staging
+    - test
+    - deploy
+
+prepare:
+    stage: prepare
+    script: echo "Prepare..."
+
+build-backend:
+    stage: build
+    script: echo "Build backend..."
+
+build-workers:
+    stage: build
+    script: echo "Build workers..."
+
+build-ui:
+    stage: build
+    script:
+        - chmod 777 ./deploy/build.sh
+        - ./deploy/build.sh
+
+staging:
+    stage: staging
+    script:
+        - echo "Staging. Deploy to test server."
+        - echo "Value of \$VAR1 = ${VAR1}"
+    environment:
+        name: staging
+
+test-backend:
+    stage: test
+    script:
+        - echo "Test backend"
+        - echo "Value of \$VAR1 = ${VAR1}"
+    environment:
+        name: test
+
+test-workers:
+    stage: test
+    script: echo "Test workers"
+    environment:
+        name: test
+
+test-ui:
+    stage: test
+    script: echo "Test UI"
+    environment:
+        name: test
+
+deploy:
+    stage: deploy
+    script:
+        - echo "Deploy to production"
+        - echo "Value of \$VAR1 = ${VAR1}"
+        - chmod 777 ./deploy/deploy.sh
+        - ./deploy/deploy.sh
+    environment:
+        name: production
+    when: manual
