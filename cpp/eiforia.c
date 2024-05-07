@@ -116,6 +116,7 @@ long min(long a, long b)
     }
 }
 
+//MARK:menu
 long menu(long c, const char *s, int x, int y)
 {
     int i, l, l2;
@@ -153,6 +154,7 @@ long menu(long c, const char *s, int x, int y)
     return ch - 48;
 }
 
+//MARK:main
 int main(int argc, char *argv[])
 {
     // if (tui_init())
@@ -209,6 +211,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+//MARK:prn_sost
 void prn_sost(long god)
 {
     if (fl_end == 1)
@@ -238,6 +241,7 @@ void prn_sost(long god)
     }
 }
 
+//MARK:get_choice
 long get_choice()
 {
     char ch;
@@ -267,6 +271,7 @@ long get_choice()
     return n;
 }
 
+//MARK:get_chislo
 long get_chislo()
 {
     char s[255];
@@ -278,6 +283,7 @@ long get_chislo()
     return atol(s);
 }
 
+//MARK:check_enter
 long check_enter(long v_old, long v_new)
 {
     while (v_new > v_old)
@@ -288,6 +294,7 @@ long check_enter(long v_old, long v_new)
     return v_new;
 }
 
+//MARK:visir_message
 void visir_message()
 {
     printf("\n\nВаше Величество, прибыл Главный Визирь с докладом.");
@@ -341,6 +348,7 @@ void visir_message()
     }
 }
 
+//MARK:make_price
 void make_price()
 {
     cur_pr_gold  = ((pr_gold * 75) / 100)  + (random(50) * pr_gold / 100);
@@ -350,6 +358,7 @@ void make_price()
     cur_pr_guard = ((pr_guard * 75) / 100) + (random(50) * pr_guard / 100);
 }
 
+//MARK:prn_birge
 void prn_birge()
 {
     double f;
@@ -370,6 +379,7 @@ void prn_birge()
     printf("\n╚════════════════╧══════════════╧══════════════╧══════════════╝");
 }
 
+//MARK:torgovla
 void torgovla()
 {
     long nn, nn2;
@@ -557,6 +567,7 @@ void torgovla()
     while (nn != 6);
 }
 
+//MARK:choice_zerno
 void choice_zerno()
 {
     long n;
@@ -602,7 +613,7 @@ void choice_zerno()
 
 /* 0 - страшная засуха, 1 - плохонькая урожайность, 2 - средняя урожайность
    3 - хорошая урожайность, 4 - невиданно плодородный год */
-
+//MARK:make_turn
 long make_turn()
 {
     long n;
@@ -734,6 +745,7 @@ long make_turn()
     return 0;
 }
 
+//MARK:prn_ochki
 void prn_ochki(long i)
 {
     printf("\nДеньги - %li; ", cur_money / 1000);
@@ -746,6 +758,7 @@ void prn_ochki(long i)
     printf("время правления - %li.", i * 10);
 }
 
+//MARK:make_ochki
 long make_ochki(long i)
 {
     ochki = 0;
@@ -760,6 +773,7 @@ long make_ochki(long i)
     return ochki;
 }
 
+//MARK:snarad_kar
 long snarad_kar()
 {
     long n;
@@ -779,6 +793,7 @@ long snarad_kar()
     return 1;
 }
 
+//MARK:grabeg_kar
 void grabeg_kar()
 {
     long n, grab;
@@ -798,6 +813,7 @@ void grabeg_kar()
     }
 }
 
+//MARK:pribil_kar
 void pribil_kar()
 {
     long prib;
@@ -806,6 +822,7 @@ void pribil_kar()
     cur_money += prib;
 }
 
+//MARK:mitropolit
 void mitropolit()
 {
     long cur, nn;
@@ -864,6 +881,7 @@ void mitropolit()
     }
 }
 
+//MARK:nasledstvo
 void nasledstvo()
 {
     long cur;
@@ -895,6 +913,7 @@ void nasledstvo()
     printf("\nСолдаты - %li чел.", cur);
 }
 
+//MARK:poimali_visir
 void poimali_visir()
 {
     long cur;
@@ -906,6 +925,7 @@ void poimali_visir()
     fl_vis = 0;
 }
 
+//MARK:sosed_marry
 void sosed_marry()
 {
     long n;
@@ -959,6 +979,7 @@ void sosed_marry()
     }
 }
 
+//MARK:begin_war
 void begin_war()
 {
     // char ch;
@@ -1061,6 +1082,7 @@ void begin_war()
     }
 }
 
+//MARK:rodilsa_sin
 void rodilsa_sin()
 {
     long cur;
@@ -1070,6 +1092,7 @@ void rodilsa_sin()
     cur_money -= cur;
 }
 
+//MARK:dead_wife
 void dead_wife()
 {
     long cur;
@@ -1087,6 +1110,7 @@ void dead_wife()
     fl_marry = 0;
 }
 
+//MARK:koroleva_prosit
 void koroleva_prosit()
 {
     long n, cur;
@@ -1152,6 +1176,7 @@ void koroleva_prosit()
     }
 }
 
+//MARK:shaman
 long shaman()
 {
     long cur, n, n2, fl;
@@ -1193,6 +1218,7 @@ long shaman()
     return fl;
 }
 
+//MARK:korol_bolen
 long korol_bolen(long i)
 {
     long fl, n, n2, cur;
@@ -1233,6 +1259,7 @@ long korol_bolen(long i)
     return fl;
 }
 
+//MARK:new_game
 void new_game()
 {
     long i, n;
@@ -1586,6 +1613,7 @@ void new_game()
     }
 }
 
+//MARK:intro
 void intro()
 {
 //    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -1825,6 +1853,7 @@ void intro()
     getchar();
 */}
 
+//MARK:prn_rule
 void prn_rule()
 {
 /*    char ch;

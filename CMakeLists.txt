@@ -14,11 +14,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add FSM library (header only)
-include_directories(lib)
+# include_directories(lib)
 
 add_executable(ftxui-euphoria cpp/main.cpp)
 target_link_libraries(ftxui-euphoria
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
-  PRIVATE ftxui::component # Not needed for this example.
+  PRIVATE ftxui::component
 )
